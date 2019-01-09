@@ -1,32 +1,8 @@
+import * as cdsl from "balena-cdsl";
 import React from "react";
 import ReactDOM from "react-dom";
 import { Box, Provider } from "rendition";
 import { Form } from "rendition/dist/unstable";
-
-import * as cdsl from "balena-cdsl";
-
-const JSONSchema = {
-  type: "object",
-  properties: {
-    devices: {
-      type: "number",
-      title: "Devices"
-    },
-    monthsCommit: { type: "number", title: "Commitment (months)", default: 1 },
-    monthsPrepay: { type: "number", title: "Prepayment (months)", default: 1 },
-    deviceClass: {
-      default: "standard",
-      enum: ["basic", "standard", "gateway"]
-    },
-    licenseType: {
-      default: "transferrable",
-      enum: ["transferrable", "fixed"]
-    },
-    microservices: {
-      type: "boolean"
-    }
-  }
-};
 
 const balenaSchema = `
   title: pricing
@@ -36,13 +12,23 @@ const balenaSchema = `
         title: Devices
         type: number
     - monthsCommit:
+        title: Commitment (months)
         default: 0
         type: number
     - monthsPrepay:
+        title: Prepayment (months)
         default: 0
         type: number
+    - foo:
+        type: number
+        formula: uuidv4()
+        $$formula: uuidv4()
+
+    - bar:
+        type: number
+        eval: foo + 10
     - deviceClass:
-        type: string
+        type: string?
         default: standard
         enum:
           - value: basic
@@ -78,10 +64,22 @@ class App extends React.Component {
 
   render() {
     const { formData } = this.state;
+    const monthsCommit = formData.monthsCommit || 0
+    const monthsPrepay = formData.monthsPrepay || 0
+
     return (
       <Box p={3}>
-        <Form schema={schema.json_schema} uiSchema={schema.ui_object} onFormChange={this.onChange} />
-        <Box mt={3}>{formData.monthsCommit * formData.monthsPrepay}</Box>
+        <Form
+          schema={schema.json_schema}
+          uiSchema={schema.ui_object}
+          onFormChange={this.onChange}
+        />
+
+        <Box
+          mt={3}
+        >
+          {monthsCommit * monthsPrepay}
+        </Box>
       </Box>
     );
   }
