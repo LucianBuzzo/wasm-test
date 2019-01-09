@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.prod.js",
-    "start": "webpack-dev-server --config webpack.dev.js"
+    "build": "webpack",
+    "start": "webpack-dev-server"
   },
   "author": "Lucian Buzzo <lucian.buzzo@gmail.com>",
   "dependencies": {
@@ -49,7 +49,7 @@
     "style-loader": "^0.23.0",
     "webpack": "^4.28.3",
     "webpack-cli": "^3.2.0",
-    "webpack-dev-server": "^3.1.14",
+    "webpack-dev-server": "^3.1.14"
   },
   "babel": {
     "presets": [
