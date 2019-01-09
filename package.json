@@ -4,16 +4,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
-    "start": "webpack-dev-server --config webpack.dev.js",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -m 'deploy [ci skip]' -d dist",
-    "lint": "eslint --ignore-path .gitignore --ignore-pattern 'webpack.*.js' .",
-    "test": "jest --silent --verbose __tests__/components/",
-    "e2e-no-server": "jest --verbose --detectOpenHandles __tests__/e2e/",
-    "watch": "jest --silent --verbose --watchAll __tests__/components/",
-    "test-e2e": "start-server-and-test start http-get://localhost:8080 e2e-no-server"
+    "start": "webpack-dev-server --config webpack.dev.js"
   },
-  "author": "Robert Vojta <robert@balena.io>, Cyryl Płotnicki <cyryl@balena.io>",
+  "author": "Lucian Buzzo <lucian.buzzo@gmail.com>",
   "dependencies": {
     "balena-cdsl": "^0.6.4",
     "balena-temen": "^0.0.25",
@@ -36,8 +29,6 @@
     "babel-loader": "^8.0.5",
     "copy-webpack-plugin": "^4.5.2",
     "css-loader": "^1.0.0",
-    "enzyme": "^3.8.0",
-    "enzyme-adapter-react-16": "^1.7.1",
     "eslint": "^5.12.0",
     "eslint-config-prettier": "^3.3.0",
     "eslint-config-standard": "^12.0.0",
@@ -50,24 +41,15 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-react": "^7.12.3",
     "eslint-plugin-standard": "^4.0.0",
-    "git-revision-webpack-plugin": "^3.0.3",
     "html-webpack-plugin": "^3.2.0",
     "interpolate-html-plugin": "^3.0.0",
-    "jest": "^23.6.0",
-    "jest-enzyme": "^7.0.1",
     "prettier": "1.15.3",
-    "puppeteer": "^1.11.0",
-    "react-test-renderer": "^16.7.0",
     "regenerator-runtime": "^0.13.1",
     "start-server-and-test": "^1.7.11",
     "style-loader": "^0.23.0",
-    "ts-jest": "^23.10.5",
-    "ts-loader": "^5.3.3",
-    "typescript": "^3.2.2",
     "webpack": "^4.28.3",
     "webpack-cli": "^3.2.0",
     "webpack-dev-server": "^3.1.14",
-    "webpack-merge": "^4.2.1"
   },
   "babel": {
     "presets": [
@@ -83,14 +65,5 @@
       "@babel/plugin-syntax-dynamic-import",
       "@babel/plugin-proposal-class-properties"
     ]
-  },
-  "jest": {
-    "setupTestFrameworkScriptFile": "./node_modules/jest-enzyme/lib/index.js",
-    "setupFiles": ["./test-setup.js"],
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
-    "transform": {
-      "^.+\\.(ts|tsx|js|jsx)$": "ts-jest"
-    },
-    "testMatch": ["**/*.(ts|tsx|js|jsx)"]
   }
 }
