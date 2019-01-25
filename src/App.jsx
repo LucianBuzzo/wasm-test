@@ -10,6 +10,9 @@ const balenaSchema = `
   title: pricing
   version: 1
   properties:
+    - foo:
+        formula: UUIDV4()
+        type: string
     - devices:
         title: Devices
         type: number
