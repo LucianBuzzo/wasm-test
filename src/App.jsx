@@ -5,51 +5,148 @@ import ReactDOM from "react-dom";
 import { Box, Provider, Txt } from "rendition";
 import Form from "react-jsonschema-form";
 import * as _ from 'lodash'
+import BaseInput from "./BaseInput.jsx"
+
+const widgets = {
+  BaseInput
+}
 
 const balenaSchema = `
   title: pricing
   version: 1
   properties:
-    - foo:
-        formula: UUIDV4()
-        type: string
     - devices:
         title: Devices
         type: number
         default: 1000
-    - monthsCommit:
+    - months:
         title: Commitment (months)
         default: 12
         type: number
-    - monthsPrepay:
-        title: Prepayment (months)
-        default: 20
+    - yearDiscount:
+        title: Year Discount
+        default: 0
         type: number
-    - deviceClass:
+    - stepdownFactor:
+        title: Stepdown Factor
+        default: 0.9
+        type: number
+    - classMultiplier:
+        title: Device Class
         type: string?
-        default: standard
+        default: 1
         enum:
-          - value: basic
-          - value: standard
-          - value: gateway
-    - licenseType:
+          - title: basic
+            value: 0.9
+          - title: standard
+            value: 1
+          - title: gateway
+            value: 1.1
+    - licenseMultiplier:
+        title: License Type
         type: string
-        default: transferrable
+        default: 1
         enum:
-          - value: transferrable
-          - value: fixed
+          - title: Transferrable
+            value: 1
+          - title: Fixed
+            value: 0.8
     - microservices:
-        type: boolean
+        type: number
+        default: 0
+        enum:
+          - title: Yes
+            value: 1
+          - title: No
+            value: 0
+    - microservices_boost:
+        title: Multicontainer Boost
+        type: number
+        default: 0.5
     - unit:
         title: Base unit price
         type: number
         default: 1
-    - Total:
+    - Result:
+        properties:
+          - Total:
+              formula: >
+                devices * months * unit *
+                  (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+                  POW(stepdownFactor, LOG10(MAX((devices * months) / 1000, 1))) *
+                  licenseMultiplier *
+                  classMultiplier *
+                  (1 + microservices_boost * microservices)
+              readOnly: true
+              type: number
+          - devpm:
+              title: Per dev/mo
+              formula: >
+                unit *
+                  (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+                  POW(stepdownFactor, LOG10(MAX((devices * months) / 1000, 1))) *
+                  licenseMultiplier *
+                  classMultiplier *
+                  (1 + microservices_boost * microservices)
+              readOnly: true
+              type: number
+          - marginalDevice:
+              title: Marginal Device
+              formula: >
+                ((devices * months * unit *
+                  (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+                  POW(stepdownFactor, LOG10(MAX((devices * months) / 1000, 1))) *
+                  licenseMultiplier *
+                  classMultiplier *
+                  (1 + microservices_boost * microservices))
+                   -
+                  ((devices-1) * months * unit *
+                  (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+                  POW(stepdownFactor, LOG10(MAX((devices * months) / 1000, 1))) *
+                  licenseMultiplier *
+                  classMultiplier *
+                  (1 + microservices_boost * microservices))) / months
+              readOnly: true
+              type: number
+
+`
+/*
+    - devpm:
+        title: Per dev/mo
         formula: >
-          devices * monthsCommit * unit
+          unit *
+            (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+            POW(stepdownFactor, LOG10(Math.max((devices * months) / 1000))) *
+            licenseMultiplier *
+            classMultiplier *
+            (1 + microservices_boost * microservices)
+
+    - marginalDevice:
+        title: Marginal Device
+        formula: >
+          ((devices * months * unit *
+            (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+            POW(stepdownFactor, LOG10(Math.max((devices * months) / 1000))) *
+            licenseMultiplier *
+            classMultiplier *
+            (1 + microservices_boost * microservices))
+             -
+            ((devices-1) * months * unit *
+            (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+            POW(stepdownFactor, LOG10(Math.max((devices * months) / 1000))) *
+            licenseMultiplier *
+            classMultiplier *
+            (1 + microservices_boost * microservices))) / months
         readOnly: true
         type: number
-`
+
+          devices * months * unit *
+              (1 - (((months > 11 ? 13 : 0) + (months-1))/24) * yearDiscount) *
+              POW(stepdownFactor, LOG10((devices * months) / 1000, 1)) *
+              licenseMultiplier *
+              classMultiplier *
+              (1 + microservices_boost * microservices)
+              */
 
 const schema = cdsl.generate_ui(balenaSchema)
 
@@ -57,17 +154,15 @@ console.log(schema)
 
 console.log(temen)
 
-var isobject = function(x){
-    return Object.prototype.toString.call(x) === '[object Object]';
-};
+schema.ui_object['ui:order'] = schema.json_schema.$$order
 
 const getFormulaKeys = function(obj, prefix){
   var keys = Object.keys(obj);
   prefix = prefix ? prefix + '.' : '';
   return keys.reduce(function(result, key){
-    if(isobject(obj[key])){
+    if (_.isPlainObject(obj[key])){
       result = result.concat(getFormulaKeys(obj[key], prefix + key));
-    }else if (key === '$$formula') {
+    } else if (key === '$$formula') {
       result.push(prefix + key);
     }
     return result;
@@ -124,8 +219,9 @@ class App extends React.Component {
     const { formData } = this.state;
 
     return (
-      <Box p={3} mx='auto' style={{maxWidth: 960}}>
+      <Box p={3} mx='auto' style={{maxWidth: 666}}>
         <Form
+          widgets={widgets}
           formData={formData}
           schema={schema.json_schema}
           uiSchema={schema.ui_object}

@@ -9,7 +9,7 @@
   "author": "Lucian Buzzo <lucian.buzzo@gmail.com>",
   "dependencies": {
     "balena-cdsl": "^0.6.13",
-    "balena-temen": "^0.2.0",
+    "balena-temen": "^0.4.0",
     "lodash": "^4.17.11",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
